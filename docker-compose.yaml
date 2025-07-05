@@ -26,10 +26,8 @@ services:
       SQL_BASE: ${SQL_BASE}
       PROTOCOL: http
       BASE_DOMAIN: ${BASE_DOMAIN}
-      HMDM_URL: http://${BASE_DOMAIN}
+      HMDM_URL: https://h-mdm.com/files/hmdm-5.30.3-os.war
       ADMIN_EMAIL: ${ADMIN_EMAIL}
-      DISABLE_HTTPS: "true"
-      SKIP_DOWNLOAD: "true"
-      FORCE_RECONFIGURE: "false"
+      FORCE_RECONFIGURE: "true"
     volumes:
       - ./volumes/work:/usr/local/tomcat/work

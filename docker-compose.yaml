@@ -14,7 +14,7 @@ services:
     volumes:
       - ./volumes/db:/var/lib/postgresql/data
     expose:
-      - "5432"          # accessible only on the Docker network
+      - "5432"
     networks:
       - hmdmnet
 
@@ -25,8 +25,8 @@ services:
     image: headwindmdm/hmdm:0.1.5
     restart: unless-stopped
     ports:
-      - "8189:8080"     # host→container (Tomcat HTTP)
-      - "31000:31000"   # device-sync
+      - "8189:8080"          # Coolify/Traefik will proxy HTTPS → 8189
+      - "31000:31000"        # device sync
     volumes:
       - ./volumes/work:/usr/local/tomcat/work
       - ./volumes/letsencrypt:/etc/letsencrypt
@@ -36,16 +36,20 @@ services:
       SQL_BASE: ${SQL_BASE}
       SQL_PASS: ${SQL_PASS}
 
-      PROTOCOL: http
-      BASE_DOMAIN: ${BASE_DOMAIN}           # mdm.tehub.co.uk
-      HMDM_URL: http://${BASE_DOMAIN}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      # ── Headwind runtime ─────────────────
+      PROTOCOL=http
+      BASE_DOMAIN=${BASE_DOMAIN}
+      HMDM_URL=http://${BASE_DOMAIN}
+      ADMIN_EMAIL=${ADMIN_EMAIL}
+      SHARED_SECRET=${SHARED_SECRET}
+      HMDM_VARIANT=${HMDM_VARIANT}
+      CLIENT_VERSION=${CLIENT_VERSION}
+      DOWNLOAD_CREDENTIALS=${DOWNLOAD_CREDENTIALS}
+      FORCE_RECONFIGURE=${FORCE_RECONFIGURE}
 
-      SHARED_SECRET: ${SHARED_SECRET}
-      HMDM_VARIANT: ${HMDM_VARIANT}
-      DOWNLOAD_CREDENTIALS: ${DOWNLOAD_CREDENTIALS}
-      CLIENT_VERSION: ${CLIENT_VERSION}
-      FORCE_RECONFIGURE: ${FORCE_RECONFIGURE}
+      # ── Disable HTTPS & download inside container ──
+      DISABLE_HTTPS=true
+      SKIP_DOWNLOAD=true
     networks:
       - hmdmnet
 
@@ -55,6 +59,3 @@ services:
 networks:
   hmdmnet:
     driver: bridge
-
-volumes:
-  db_data:

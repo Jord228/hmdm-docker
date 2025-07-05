@@ -26,7 +26,7 @@ services:
     # ▸ Coolify will publish HTTPS for you.
     #   Map *one* free host port → internal 8080 (Tomcat HTTP)
     ports:
-      - "8091:8080"       # <host>:<container>
+      - "8189:8080"       # <host>:<container>
       - "31000:31000"     # device-sync port (leave as-is)
 
     volumes:

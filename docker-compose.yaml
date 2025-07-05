@@ -1,6 +1,9 @@
 version: "3.8"
 
 services:
+  # ──────────────────────────
+  # PostgreSQL
+  # ──────────────────────────
   postgresql:
     image: postgres:12-alpine
     restart: unless-stopped
@@ -11,31 +14,47 @@ services:
     volumes:
       - ./volumes/db:/var/lib/postgresql/data
     expose:
-      - "5432"                # internal-only; no host clash
+      - "5432"          # accessible only on the Docker network
+    networks:
+      - hmdmnet
 
+  # ──────────────────────────
+  # Headwind MDM
+  # ──────────────────────────
   hmdm:
     image: headwindmdm/hmdm:0.1.5
     restart: unless-stopped
     ports:
-      - "8189:8080"           # host 8189 → Tomcat 8080
-      - "31000:31000"         # device sync
+      - "8189:8080"     # host→container (Tomcat HTTP)
+      - "31000:31000"   # device-sync
     volumes:
       - ./volumes/work:/usr/local/tomcat/work
-      - ./volumes/letsencrypt:/etc/letsencrypt   # Traefik stores certs
+      - ./volumes/letsencrypt:/etc/letsencrypt
     environment:
       SQL_HOST: postgresql
       SQL_USER: ${SQL_USER}
       SQL_BASE: ${SQL_BASE}
       SQL_PASS: ${SQL_PASS}
 
-      PROTOCOL: http                          # handled by Traefik
-      BASE_DOMAIN: ${BASE_DOMAIN}             # mdm.tehub.co.uk
-      HMDM_URL: http://${BASE_DOMAIN}         # internal URL
+      PROTOCOL: http
+      BASE_DOMAIN: ${BASE_DOMAIN}           # mdm.tehub.co.uk
+      HMDM_URL: http://${BASE_DOMAIN}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
+
       SHARED_SECRET: ${SHARED_SECRET}
       HMDM_VARIANT: ${HMDM_VARIANT}
       DOWNLOAD_CREDENTIALS: ${DOWNLOAD_CREDENTIALS}
       CLIENT_VERSION: ${CLIENT_VERSION}
       FORCE_RECONFIGURE: ${FORCE_RECONFIGURE}
+    networks:
+      - hmdmnet
+
+# ──────────────────────────
+# Shared network
+# ──────────────────────────
+networks:
+  hmdmnet:
+    driver: bridge
+
 volumes:
   db_data:

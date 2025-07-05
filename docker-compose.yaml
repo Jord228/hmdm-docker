@@ -1,8 +1,8 @@
-version: "3"
+version: "3.8"
 
 services:
-  postgresql:
-    image: postgres:14-alpine
+  db:
+    image: postgres:12-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${SQL_USER}
@@ -10,23 +10,26 @@ services:
       POSTGRES_DB: ${SQL_BASE}
     volumes:
       - ./volumes/db:/var/lib/postgresql/data
-    expose:
-      - "5432"
-    networks: [hmdmnet]
 
   hmdm:
     image: headwindmdm/hmdm:0.1.5
     restart: unless-stopped
-    depends_on: [postgresql]
     ports:
-      - "8080"            # INTERNAL for Coolify / Traefik
-      - "31000:31000"     # device sync
-    env_file: .env        # change to .env.preview for preview stack
+      - "8189:8080"
+      - "31000:31000"
+    depends_on:
+      - db
+    environment:
+      SQL_HOST: db
+      SQL_USER: ${SQL_USER}
+      SQL_PASS: ${SQL_PASS}
+      SQL_BASE: ${SQL_BASE}
+      PROTOCOL: http
+      BASE_DOMAIN: ${BASE_DOMAIN}
+      HMDM_URL: http://${BASE_DOMAIN}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      DISABLE_HTTPS: "true"
+      SKIP_DOWNLOAD: "true"
+      FORCE_RECONFIGURE: "false"
     volumes:
       - ./volumes/work:/usr/local/tomcat/work
-      - ./volumes/letsencrypt:/etc/letsencrypt
-    networks: [hmdmnet]
-
-networks:
-  hmdmnet:
-    driver: bridge
